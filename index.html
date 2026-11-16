@@ -175,7 +175,10 @@
   .splitwrap{max-height:420px;overflow:auto;border-radius:14px;}
 
   /* ---------- End page ---------- */
-  .diagram{background:var(--cloud);border-radius:16px;padding:16px;overflow:auto;border:1px solid var(--line);}
+  .diagram{background:var(--cloud);border-radius:16px;padding:16px;overflow:auto;border:1px solid var(--line);text-align:center;}
+  pre.mermaid{margin:0;}
+  pre.mermaid:not(.drawn){visibility:hidden;height:0;overflow:hidden;}
+  pre.mermaid svg{max-width:100%;height:auto;}
   .caption{font-size:.8rem;color:#7B8792;margin-top:8px;font-style:italic;}
   .reqtable td:first-child{font-weight:bold;color:#B64A12;white-space:nowrap;}
   details summary{cursor:pointer;font-weight:bold;color:var(--deep);padding:6px 0;}
@@ -391,9 +394,10 @@
   </div>
 
   <div class="continuebar">
-    <span class="stepnote">Step 3 of 4 &mdash; Strategy Hub</span>
+    <span class="stepnote">Step 3 of 4 &mdash; Strategy Hub. Your choice: see how the system works, or go straight back to the Home screen.</span>
     <div>
       <button class="btn ghost" data-go="2">← Back to the Split Generator</button>
+      <button class="btn ghost" data-go="1">Finish here and return to the Home screen</button>
       <button class="btn" data-go="4">Continue to How This System Works →</button>
     </div>
   </div>
@@ -478,20 +482,20 @@
     <div class="sunstrip"></div>
     <div class="diagram"><pre class="mermaid">
 flowchart LR
-  R(["Amateur Runner"])
-  C(["Running Coach"])
-  S["0.0 PaceCraft Split Optimizer System"]
-  G(["Garmin Sponsor Platform"])
+  R["Amateur Runner"]
+  C["Running Coach"]
+  S(["0.0 PaceCraft Split Optimizer System"])
+  G["Garmin Sponsor Platform"]
 
-  R -- "race goal details" --> S
-  R -- "access identifier" --> S
-  S -- "mile split schedule" --> R
-  S -- "safety rule message" --> R
-  S -- "access identifier receipt" --> R
-  C -- "review decision" --> S
-  S -- "plan review list" --> C
-  S -- "watch ready split file" --> G
-  G -- "pacing metric standard" --> S
+  R -->|race goal details| S
+  R -->|access identifier| S
+  S -->|mile split schedule| R
+  S -->|safety rule message| R
+  S -->|access identifier receipt| R
+  C -->|review decision| S
+  S -->|plan review list| C
+  S -->|watch ready split file| G
+  G -->|pacing metric standard| S
     </pre></div>
     <p class="caption">Drawn with Mermaid, a diagram-as-code tool. One process, no data stores, every flow named with a noun phrase.</p>
   </div>
@@ -501,51 +505,51 @@ flowchart LR
     <div class="sunstrip"></div>
     <div class="diagram"><pre class="mermaid">
 flowchart TB
-  R(["Amateur Runner"])
-  C(["Running Coach"])
-  G(["Garmin Sponsor Platform"])
+  R["Amateur Runner"]
+  C["Running Coach"]
+  G["Garmin Sponsor Platform"]
 
-  P1["1.0 Issue And Restore Access Identifier"]
-  P2["2.0 Calculate Split Schedule"]
-  P3["3.0 Validate And Save Pacing Plan"]
-  P4["4.0 Review And Update Plan Status"]
-  P5["5.0 Search And Filter Plans"]
-  P6["6.0 Produce Summary Report"]
+  P1(["1.0 Issue And Restore Access Identifier"])
+  P2(["2.0 Calculate Split Schedule"])
+  P3(["3.0 Validate And Save Pacing Plan"])
+  P4(["4.0 Review And Update Plan Status"])
+  P5(["5.0 Search And Filter Plans"])
+  P6(["6.0 Produce Summary Report"])
 
   D1[("D1 pacecraft_plans")]
   D2[("D2 pacecraft_users")]
   D3[("D3 pacecraft_reviews")]
 
-  R -- "access identifier" --> P1
-  P1 -- "user record" --> D2
-  D2 -- "stored user record" --> P1
-  P1 -- "access identifier receipt" --> R
+  R -->|access identifier| P1
+  P1 -->|user record| D2
+  D2 -->|stored user record| P1
+  P1 -->|access identifier receipt| R
 
-  R -- "race goal details" --> P2
-  G -- "pacing metric standard" --> P2
-  P2 -- "draft split schedule" --> P3
-  P2 -- "mile split schedule" --> R
+  R -->|race goal details| P2
+  G -->|pacing metric standard| P2
+  P2 -->|draft split schedule| P3
+  P2 -->|mile split schedule| R
 
-  P3 -- "validated plan record" --> D1
-  P3 -- "safety rule message" --> R
-  P3 -- "watch ready split file" --> G
+  P3 -->|validated plan record| D1
+  P3 -->|safety rule message| R
+  P3 -->|watch ready split file| G
 
-  D1 -- "stored plan record" --> P4
-  C -- "review decision" --> P4
-  P4 -- "updated plan status" --> D1
-  P4 -- "review log entry" --> D3
-  P4 -- "plan review list" --> C
+  D1 -->|stored plan record| P4
+  C -->|review decision| P4
+  P4 -->|updated plan status| D1
+  P4 -->|review log entry| D3
+  P4 -->|plan review list| C
 
-  R -- "search text" --> P5
-  C -- "search text" --> P5
-  D1 -- "stored plan record" --> P5
-  P5 -- "matching plan list" --> R
-  P5 -- "matching plan list" --> C
+  R -->|search text| P5
+  C -->|search text| P5
+  D1 -->|stored plan record| P5
+  P5 -->|matching plan list| R
+  P5 -->|matching plan list| C
 
-  D1 -- "stored plan record" --> P6
-  D3 -- "review log entry" --> P6
-  P6 -- "summary totals" --> R
-  P6 -- "summary totals" --> C
+  D1 -->|stored plan record| P6
+  D3 -->|review log entry| P6
+  P6 -->|summary totals| R
+  P6 -->|summary totals| C
     </pre></div>
     <p class="caption">Drawn with Mermaid. Six numbered processes, three data stores, balanced with the context diagram above.</p>
   </div>
@@ -556,35 +560,35 @@ flowchart TB
     <p class="sub">This is the process that enforces the most business rules: BR-01 and BR-02 both live here.</p>
     <div class="diagram"><pre class="mermaid">
 flowchart TB
-  R(["Amateur Runner"])
-  G(["Garmin Sponsor Platform"])
-  IN["from 2.0 Calculate Split Schedule"]
+  R["Amateur Runner"]
+  G["Garmin Sponsor Platform"]
+  IN["From 2.0 Calculate Split Schedule"]
 
-  P31["3.1 Check Required Entry Fields"]
-  P32["3.2 Apply Safety Pace Floor BR-01"]
-  P33["3.3 Apply Marathon Fatigue Rule BR-02"]
-  P34["3.4 Write Plan Record And Set Status"]
-  P35["3.5 Format Watch Ready Split File"]
+  P31(["3.1 Check Required Entry Fields"])
+  P32(["3.2 Apply Safety Pace Floor BR-01"])
+  P33(["3.3 Apply Marathon Fatigue Rule BR-02"])
+  P34(["3.4 Write Plan Record And Set Status"])
+  P35(["3.5 Format Watch Ready Split File"])
 
   D1[("D1 pacecraft_plans")]
   D2[("D2 pacecraft_users")]
 
-  IN -- "draft split schedule" --> P31
-  R -- "race goal details" --> P31
-  P31 -- "entry error message" --> R
-  P31 -- "checked plan details" --> P32
+  IN -->|draft split schedule| P31
+  R -->|race goal details| P31
+  P31 -->|entry error message| R
+  P31 -->|checked plan details| P32
 
-  P32 -- "safety rule message" --> R
-  P32 -- "approved pace plan" --> P33
+  P32 -->|safety rule message| R
+  P32 -->|approved pace plan| P33
 
-  P33 -- "fatigue rule message" --> R
-  P33 -- "classified plan details" --> P34
+  P33 -->|fatigue rule message| R
+  P33 -->|classified plan details| P34
 
-  D2 -- "stored user record" --> P34
-  P34 -- "validated plan record" --> D1
-  P34 -- "saved plan confirmation" --> R
-  P34 -- "classified plan details" --> P35
-  P35 -- "watch ready split file" --> G
+  D2 -->|stored user record| P34
+  P34 -->|validated plan record| D1
+  P34 -->|saved plan confirmation| R
+  P34 -->|classified plan details| P35
+  P35 -->|watch ready split file| G
     </pre></div>
     <p class="caption">Drawn with Mermaid. Numbering continues from parent process 3.0 and balances with it.</p>
   </div>
@@ -595,30 +599,30 @@ flowchart TB
     <p class="sub">This process enforces BR-03, the approval authority rule.</p>
     <div class="diagram"><pre class="mermaid">
 flowchart TB
-  C(["Running Coach"])
-  R(["Amateur Runner"])
+  C["Running Coach"]
+  R["Amateur Runner"]
 
-  P41["4.1 Retrieve Plans Awaiting Review"]
-  P42["4.2 Check Reviewer Role BR-03"]
-  P43["4.3 Record Approval Or Flag Decision"]
-  P44["4.4 Write Review Log Entry"]
+  P41(["4.1 Retrieve Plans Awaiting Review"])
+  P42(["4.2 Check Reviewer Role BR-03"])
+  P43(["4.3 Record Approval Or Flag Decision"])
+  P44(["4.4 Write Review Log Entry"])
 
   D1[("D1 pacecraft_plans")]
   D3[("D3 pacecraft_reviews")]
 
-  D1 -- "stored plan record" --> P41
-  P41 -- "plan review list" --> C
-  P41 -- "selected plan record" --> P42
+  D1 -->|stored plan record| P41
+  P41 -->|plan review list| C
+  P41 -->|selected plan record| P42
 
-  C -- "review decision" --> P42
-  P42 -- "authority rule message" --> R
-  P42 -- "authorised review decision" --> P43
+  C -->|review decision| P42
+  P42 -->|authority rule message| R
+  P42 -->|authorised review decision| P43
 
-  P43 -- "updated plan status" --> D1
-  P43 -- "status change notice" --> C
-  P43 -- "decision detail" --> P44
-  P44 -- "review log entry" --> D3
-  D3 -- "review log entry" --> P41
+  P43 -->|updated plan status| D1
+  P43 -->|status change notice| C
+  P43 -->|decision detail| P44
+  P44 -->|review log entry| D3
+  D3 -->|review log entry| P41
     </pre></div>
     <p class="caption">Drawn with Mermaid. Numbering continues from parent process 4.0 and balances with it.</p>
   </div>
@@ -629,35 +633,35 @@ flowchart TB
     <p class="sub">One end-to-end process, with one exclusive decision and one exception path. Each task is marked manual or system-supported, and every system-supported task names the data flow diagram process it maps to.</p>
     <div class="diagram"><pre class="mermaid">
 flowchart TB
-  START((Start: runner decides to race)) --> T1
-  T1["Manual: choose a goal finish time and race distance"] --> T2
-  T2["System-supported: issue or restore access identifier (DFD 1.0)"] --> T3
-  T3["Manual: enter name, distance, goal time, and strategy"] --> T4
-  T4["System-supported: calculate average pace and mile splits (DFD 2.0)"] --> T5
-  T5["System-supported: apply safety pace floor and fatigue rule (DFD 3.1 to 3.3)"] --> D1
+  START(["Start. Runner decides to race"]) --> T1
+  T1["Manual. Choose a goal finish time and race distance"] --> T2
+  T2["System-supported. Issue or restore access identifier, DFD 1.0"] --> T3
+  T3["Manual. Enter name, distance, goal time and strategy"] --> T4
+  T4["System-supported. Calculate average pace and mile splits, DFD 2.0"] --> T5
+  T5["System-supported. Apply safety pace floor and fatigue rule, DFD 3.1 to 3.3"] --> D1
 
-  D1{"Exclusive decision: is the average pace safe under BR-01?"}
-  D1 -- "No: pace faster than 4:30 per mile" --> EX1
-  D1 -- "Yes" --> T6
+  D1{"Exclusive decision. Is the average pace safe under BR-01?"}
+  D1 -->|"No. Pace faster than four thirty per mile"| EX1
+  D1 -->|Yes| T6
 
-  EX1["Exception path. System-supported: block the save and display the BR-01 safety message (DFD 3.2)"] --> EX2
-  EX2["Manual: runner raises the goal finish time"] --> T3
+  EX1["Exception path. System-supported. Block the save and display the BR-01 safety message, DFD 3.2"] --> EX2
+  EX2["Manual. Runner raises the goal finish time"] --> T3
 
-  T6["System-supported: save the plan as Draft or Flagged (DFD 3.4)"] --> T7
-  T7["Manual: coach opens the strategy hub before race day"] --> T8
-  T8["System-supported: check reviewer role under BR-03 (DFD 4.2)"] --> D2
+  T6["System-supported. Save the plan as Draft or Flagged, DFD 3.4"] --> T7
+  T7["Manual. Coach opens the strategy hub before race day"] --> T8
+  T8["System-supported. Check reviewer role under BR-03, DFD 4.2"] --> D2
 
   D2{"Is the reviewer acting as a running coach?"}
-  D2 -- "No" --> EX3
-  D2 -- "Yes" --> T9
-  EX3["System-supported: refuse the approval and show the BR-03 message, plan stays Draft (DFD 4.2)"] --> ENDB
+  D2 -->|No| EX3
+  D2 -->|Yes| T9
+  EX3["System-supported. Refuse the approval and show the BR-03 message, plan stays Draft, DFD 4.2"] --> ENDB
 
-  T9["System-supported: set status to Coach Approved or Flagged and write the review log (DFD 4.3 and 4.4)"] --> T10
-  T10["System-supported: show the summary report and export the watch ready splits (DFD 6.0 and 3.5)"] --> T11
-  T11["Manual: runner saves the access identifier and runs the race to plan"] --> ENDA
+  T9["System-supported. Set status to Coach Approved or Flagged and write the review log, DFD 4.3 and 4.4"] --> T10
+  T10["System-supported. Show the summary report and export the watch ready splits, DFD 6.0 and 3.5"] --> T11
+  T11["Manual. Runner saves the access identifier and runs the race to plan"] --> ENDA
 
-  ENDA((End: approved plan on race day))
-  ENDB((End: plan returned to the runner as unapproved draft))
+  ENDA(["End. Approved plan on race day"])
+  ENDB(["End. Plan returned to the runner as an unapproved draft"])
     </pre></div>
     <p class="caption">Drawn with Mermaid. The exception path ends either back at data entry or at a meaningful unapproved-draft end event.</p>
   </div>
@@ -695,8 +699,41 @@ flowchart TB
     primaryColor:'#FFF1D6', primaryTextColor:'#22303C', primaryBorderColor:'#FF8A3D',
     lineColor:'#1F3A5F', fontFamily:'Trebuchet MS, sans-serif', fontSize:'14px'
   }});
-  window.__renderDiagrams = () => mermaid.run({ querySelector:'.mermaid' });
-  window.__renderDiagrams();
+  let diagramsDrawn = false;
+  window.__renderDiagrams = async () => {
+    if(diagramsDrawn) return;          // draw once only, so re-visiting screen 4 never re-parses
+    diagramsDrawn = true;
+    const blocks = document.querySelectorAll('pre.mermaid');
+    for(let i = 0; i < blocks.length; i++){
+      const el = blocks[i];
+      const source = el.textContent.trim();
+      try {
+        const { svg } = await mermaid.render('pacecraftDiagram' + i, source);
+        el.innerHTML = svg;
+        el.classList.add('drawn');
+      } catch (err) {
+        el.innerHTML = '<p style="color:#B42318;font-weight:bold;margin:0 0 8px;">This diagram could not be drawn in your browser. The diagram description is printed below so it can still be read.</p>'
+                     + '<pre style="white-space:pre-wrap;font-size:.8rem;">' + source.replace(/[<>&]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])) + '</pre>';
+      }
+    }
+  };
+  window.addEventListener('load', () => {
+    if(document.getElementById('screen4').classList.contains('visible')) window.__renderDiagrams();
+  });
+</script>
+
+<script>
+/* Safety net: if the diagram library cannot load at all (for example with no internet),
+   show the written diagram description instead of an empty box. */
+setTimeout(() => {
+  document.querySelectorAll('pre.mermaid:not(.drawn)').forEach(el => {
+    if(el.querySelector('svg')) return;
+    el.classList.add('drawn');
+    el.style.whiteSpace = 'pre-wrap';
+    el.style.fontSize = '.8rem';
+    el.style.textAlign = 'left';
+  });
+}, 8000);
 </script>
 
 <script>
