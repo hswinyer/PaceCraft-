@@ -1,0 +1,793 @@
+html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PaceCraft — Garmin Race Pacing Prototype</title>
+  <script src="https://jsdelivr.net"></script>
+  <script>
+    mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 1050px;
+      margin: 0 auto;
+      padding: 16px;
+      line-height: 1.5;
+      color: #111;
+      background: #f4f6f8;
+    }
+    header, nav, section {
+      background: #fff;
+      border: 2px solid #222;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .proto-banner {
+      background: #111;
+      color: #fff;
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 8px;
+    }
+    .topbar-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      align-items: center;
+      background: #eef2f6;
+      padding: 10px;
+      border: 1px solid #888;
+      margin-top: 10px;
+    }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      background: #e9ecef;
+    }
+    nav button {
+      padding: 8px 14px;
+      font-weight: bold;
+      cursor: pointer;
+      border: 2px solid #222;
+      background: #fff;
+    }
+    nav button.active-tab {
+      background: #111;
+      color: #fff;
+    }
+    .hidden { display: none !important; }
+    .error-banner {
+      background: #ffe3e3;
+      border: 2px solid #c92a2a;
+      color: #a61e1e;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-weight: bold;
+      display: none;
+    }
+    .success-banner {
+      background: #d3f9d8;
+      border: 2px solid #2b8a3e;
+      color: #1b5e20;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-weight: bold;
+      display: none;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+    .stat-card {
+      border: 2px solid #222;
+      padding: 12px;
+      background: #f8f9fa;
+    }
+    .stat-card span {
+      display: block;
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+    .role-box {
+      border-left: 5px solid #0b7285;
+      background: #e3fafc;
+      padding: 12px;
+      margin: 12px 0;
+    }
+    form label {
+      display: block;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    form input, form select {
+      width: 100%;
+      max-width: 420px;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #333;
+    }
+    .btn-primary {
+      margin-top: 14px;
+      padding: 10px 18px;
+      font-weight: bold;
+      background: #111;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-approve {
+      background: #2b8a3e;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-flag {
+      background: #c92a2a;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 8px;
+      text-align: left;
+    }
+    th { background: #e9ecef; }
+    .req-footer {
+      margin-top: 18px;
+      padding-top: 10px;
+      border-top: 1px dashed #555;
+      font-size: 12px;
+      color: #333;
+    }
+    .diagram-box {
+      border: 1px solid #666;
+      padding: 14px;
+      margin: 14px 0;
+      background: #fff;
+      overflow-x: auto;
+    }
+    .diagram-caption {
+      font-size: 12px;
+      font-style: italic;
+      color: #444;
+      margin-top: 8px;
+      border-top: 1px solid #eee;
+      padding-top: 6px;
+    }
+    code {
+      background: #eee;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- SHARED HEADER & VISIBLE ROLE SELECTOR -->
+  <header>
+    <div class="proto-banner">PROTOTYPE ONLY — SYNTHETIC DATA — SPONSORED BY GARMIN</div>
+    <h1 style="margin: 4px 0;">PaceCraft: Race Strategy & Split Optimizer</h1>
+    <p style="margin: 0; font-size: 14px;">Client-side race pacing calculator & coach approval registry (Browser <code>localStorage</code> — no sign-in required).</p>
+
+    <div class="topbar-controls">
+      <div>
+        <label for="roleSelector"><strong>Active Role Selector (NFR-03):</strong></label>
+        <select id="roleSelector" onchange="handleRoleChange()">
+          <option value="Amateur Runner">Amateur Runner (Primary User)</option>
+          <option value="Running Coach">Running Coach (Secondary Stakeholder)</option>
+        </select>
+      </div>
+      <button onclick="resetDemoData()" style="padding: 6px 12px; font-weight: bold; cursor: pointer;">
+        Reset Demo Data
+      </button>
+    </div>
+  </header>
+
+  <!-- SHARED NAVIGATION -->
+  <nav>
+    <button id="tab-home" class="active-tab" onclick="showScreen('screen-home', 'tab-home')">1. Start & Summary Dashboard</button>
+    <button id="tab-generator" onclick="showScreen('screen-generator', 'tab-generator')">2. Split Generator</button>
+    <button id="tab-hub" onclick="showScreen('screen-hub', 'tab-hub')">3. Strategy Hub (Review & Curves)</button>
+    <button id="tab-endpage" onclick="showScreen('screen-endpage', 'tab-endpage')">4. How this system works</button>
+  </nav>
+
+  <!-- GLOBAL FEEDBACK BANNERS -->
+  <div id="errorBanner" class="error-banner"></div>
+  <div id="successBanner" class="success-banner"></div>
+
+  <!-- ========================================================= -->
+  <!-- SCREEN 1: START / HOME SCREEN + SUMMARY REPORT (FR-06)    -->
+  <!-- ========================================================= -->
+  <section id="screen-home">
+    <h2>1. Welcome & Role Capabilities</h2>
+    <p><strong>Core Need:</strong> Amateur long-distance runners often start races too fast and "hit the wall." PaceCraft calculates safe mile-by-mile splits for Garmin watch workouts while letting Running Coaches audit and approve plans before race day.</p>
+
+    <div id="roleCapabilitiesBox" class="role-box"></div>
+
+    <h3>Live Summary Report (FR-06)</h3>
+    <div class="grid-3">
+      <div class="stat-card">
+        Total Saved Plans (<code>D1_pacing_plans</code>)
+        <span id="statTotalPlans">0</span>
+      </div>
+      <div class="stat-card">
+        Coach-Approved Plans
+        <span id="statApprovedPlans">0</span>
+      </div>
+      <div class="stat-card">
+        Average Target Pace
+        <span id="statAvgPace">0:00 /mi</span>
+      </div>
+    </div>
+
+    <div class="req-footer">
+      <strong>Screen Traceability:</strong> Displays active role capabilities (<strong>NFR-03</strong>) and executes aggregate summary calculations (<strong>FR-06</strong>) persisted in <code>D1_pacing_plans</code> (<strong>NFR-02</strong>).
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- SCREEN 2: SPLIT GENERATOR (FR-01, FR-02, FR-03, BR-01/02) -->
+  <!-- ========================================================= -->
+  <section id="screen-generator" class="hidden">
+    <h2>2. Create & Calculate Race Pacing Plan</h2>
+
+    <form id="planForm" onsubmit="createPacingPlan(event)">
+      <label for="runnerName">Runner Name (Synthetic):</label>
+      <input type="text" id="runnerName" required placeholder="e.g., Jordan Taylor" />
+
+      <label for="raceDistance">Target Race Distance:</label>
+      <select id="raceDistance">
+        <option value="3.1">5K (3.1 miles)</option>
+        <option value="6.2">10K (6.2 miles)</option>
+        <option value="13.1">Half Marathon (13.1 miles)</option>
+        <option value="26.2">Marathon (26.2 miles)</option>
+      </select>
+
+      <label for="goalMinutes">Goal Finish Time (Total Minutes):</label>
+      <input type="number" id="goalMinutes" required min="1" step="0.1" placeholder="e.g., 210 for 3h 30m Marathon" />
+
+      <label for="strategyType">Pacing Strategy Type (Reads from <code>D2_strategy_curves</code>):</label>
+      <select id="strategyType"></select>
+
+      <button type="submit" class="btn-primary">Calculate Splits & Save Plan</button>
+    </form>
+
+    <div id="splitOutputContainer" class="hidden" style="margin-top: 20px;">
+      <h3>Generated Mile-by-Mile Split Schedule (FR-02)</h3>
+      <p id="splitSummaryHeader" style="font-weight: bold;"></p>
+      <table>
+        <thead>
+          <tr>
+            <th>Mile</th>
+            <th>Target Mile Pace</th>
+            <th>Cumulative Elapsed Time</th>
+          </tr>
+        </thead>
+        <tbody id="splitTableBody"></tbody>
+      </table>
+    </div>
+
+    <div class="req-footer">
+      <strong>Screen Traceability:</strong> Record Creation in <code>D1_pacing_plans</code> (<strong>FR-01</strong>), Rule-Driven Split Calculation using <code>D2_strategy_curves</code> (<strong>FR-02</strong>), Error Handling blocking paces faster than 4:30/mi (<strong>FR-03</strong>, <strong>BR-01</strong>), and Marathon Positive-Split auto-flagging (<strong>BR-02</strong>).
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- SCREEN 3: STRATEGY HUB — SEARCH, FILTER & STATUS (FR-04/05)-->
+  <!-- ========================================================= -->
+  <section id="screen-hub" class="hidden">
+    <h2>3. Strategy Hub: Search, Filter & Coach Review</h2>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;">
+      <div>
+        <label for="searchRunner"><strong>Search Runner (FR-04):</strong></label>
+        <input type="text" id="searchRunner" onkeyup="filterStrategies()" placeholder="Type runner name..." style="padding: 6px;" />
+      </div>
+      <div>
+Use code with caution.
+Filter by Distance (FR-04):
+All Distances
+5K (3.1 mi)
+10K (6.2 mi)
+Half Marathon (13.1 mi)
+Marathon (26.2 mi)
+
+
+
+Plan ID	Runner	Distance	Goal Time	Avg Pace	Strategy	Status	Coach Actions (FR-05 / BR-03)
+
+Coach Strategy Curve Calibration (D2_strategy_curves)
+Running Coaches may adjust the start/finish variance percentage stored in D2_strategy_curves (BR-03).
+Strategy:
+Negative Split
+Positive Split
+Start/End Variance (%):
+Update Curve in D2
+
+Screen Traceability: Real-time Search & Filter (FR-04, NFR-01) and Status / Curve Management (FR-05) enforcing Coach-only approval authority (BR-03).
+4. How this system works
+A. Target User & Value Model
+Primary User Group & Need: Amateur long-distance runners who are training for a timed road race (5K to Marathon) and need to calculate, validate, and store realistic mile-by-mile pacing splits to avoid burning out early and missing their goal times. Without structured pacing math, amateur runners frequently start races too fast, deplete their glycogen stores prematurely, and "hit the wall" before the finish line. PaceCraft turns a runner's goal time and pacing strategy into a safe, coach-reviewed mile-by-mile workout schedule ready for Garmin watches.
+
+Secondary Stakeholder: Running Club Coach / Pacing Coordinator who oversees the system, audits submitted race strategies for cardiovascular safety, calibrates pacing variance curves, and approves or flags plans before race day.
+Value Model (Funded by Sponsor — Garmin): Garmin funds and hosts the platform as a free ecosystem utility. Garmin bears all development and hosting costs to drive wearable hardware sales and Garmin Connect engagement, while runners and coaches benefit at zero cost.
+B. System Requirements
+
+ID	Category	Requirement / Policy / Constraint Statement
+FR-01
+	Functional	The system shall create and save a new race pacing plan in D1_pacing_plans when a user submits a runner name, race distance, goal finish time, and strategy type.
+FR-02
+	Functional	The system shall calculate the average pace per mile and display a mile-by-mile target split table using the variance rules in D2_strategy_curves.
+FR-03
+	Functional	The system shall reject plan submission and display an error message citing BR-01 when the calculated average pace is faster than 4 minutes and 30 seconds (4:30) per mile.
+FR-04
+	Functional	The system shall filter the displayed list of saved pacing plans in real time by runner name or race distance.
+FR-05
+	Functional	The system shall change a pacing plan's status from "Draft" to "Coach Approved" or "Flagged (High Risk)" and update strategy curves when authorized by a Running Coach.
+FR-06
+	Functional	The system shall compute and display a summary dashboard showing total saved plans, total coach-approved plans, and average target pace across all stored records.
+NFR-01
+	Non-Functional (Performance)	The system shall filter and render updated strategy search results within 500 milliseconds of user keystroke input.
+NFR-02
+	Non-Functional (Reliability)	The system shall retain 100% of created and updated pacing plans across browser page refreshes using localStorage.
+NFR-03
+	Non-Functional (Usability)	The system shall update displayed role permissions and enable or disable Coach controls in 0 page reloads (immediately) when the global Role Selector changes.
+BR-01
+	Business Rule	Amateur runners shall not target an average race pace faster than 4 minutes and 30 seconds (4:30) per mile on any training or race pacing plan.
+BR-02
+	Business Rule	Marathon (26.2-mile) pacing plans that use a Positive Split strategy (starting faster than average goal pace) shall be classified as "Flagged (High Risk)" for coach review.
+BR-03
+	Business Rule	Amateur runners shall not approve their own pacing plans or alter coaching curves; only a Running Coach has the authority to set a plan status to "Coach Approved."
+CON-01
+	Constraint	The system shall run entirely client-side inside a standard web browser using localStorage with zero backend servers, login authentication, or paid external services.
+CON-02
+	Constraint	All pacing calculations and split outputs shall use imperial mile units and MM:SS pace formatting to remain compatible with standard Garmin wearable workout files.
+
+C. Browser Data Stores (Exact localStorage Keys & Fields)
+
+DFD Store ID	Exact Browser localStorage Key	Key Fields Stored
+D1
+	D1_pacing_plans	planId (PK), runnerName, distance, distanceLabel, goalMinutes, avgPaceSec, strategyName (FK), status
+D2
+	D2_strategy_curves	strategyName (PK), variancePct, description
+
+D. Data Flow Diagrams (DFD)
+1. Context Diagram
+
+
+flowchart LR
+Runner[Amateur Runner]
+Coach[Running Coach]
+System((0.0 PaceCraft System))
+Runner -->|Race Plan Submission & Search Filter Query| System
+System -->|Mile Split Schedule, Rule Alert & Filtered Plan List| Runner
+Coach -->|Plan Status Decision & Curve Calibration| System
+System -->|Filtered Plan List & Summary Pace Report| Coach
+
+Figure 1: Context Diagram — Generated via Mermaid.js v10 (SVG vector output). All flows are noun phrases; no data stores cross the system boundary.
+2. Level-0 DFD (Balanced with Context Diagram)
+
+
+flowchart TD
+Runner[Amateur Runner]
+Coach[Running Coach]
+D1[(D1: D1_pacing_plans)]
+D2[(D2: D2_strategy_curves)]
+P1((1.0 Validate & Create Plan))
+P2((2.0 Calculate Mile Splits))
+P3((3.0 Search & Filter Plans))
+P4((4.0 Manage Status & Curves))
+P5((5.0 Compile Summary Report))
+Runner -->|Race Plan Submission| P1
+P1 -->|Rule Alert BR-01| Runner
+P1 -->|Validated Plan Record| D1
+D1 -->|Saved Plan Parameters| P2
+D2 -->|Strategy Variance Rule| P2
+P2 -->|Mile Split Schedule| Runner
+Runner -->|Search Filter Query| P3
+D1 -->|Stored Plan Records| P3
+P3 -->|Filtered Plan List| Runner
+P3 -->|Filtered Plan List| Coach
+Coach -->|Plan Status Decision| P4
+Coach -->|Curve Calibration| P4
+D1 -->|Existing Plan Record| P4
+P4 -->|Updated Plan Status| D1
+P4 -->|Updated Curve Variance| D2
+D1 -->|All Plan Records| P5
+P5 -->|Summary Pace Report| Coach
+
+Figure 2: Level-0 DFD — Generated via Mermaid.js v10 (SVG vector output). Balanced with Context Diagram; every store (D1, D2) is both read and written.
+3. Exploded Level-1 DFD — Process 1.0 (Enforces Business Rules BR-01 & BR-02)
+
+
+flowchart LR
+In1[Race Plan Submission] --> P11((1.1 Compute Average Mile Pace))
+P11 -->|Calculated Pace| P12((1.2 Enforce Safety Pace Floor BR-01))
+P12 -->|Unsafe Pace < 4:30/mi| OutErr[Rule Alert BR-01]
+P12 -->|Safe Pace >= 4:30/mi| P13((1.3 Assign Risk Status BR-02))
+P13 -->|Validated Plan Record| OutD1[(D1: D1_pacing_plans)]
+
+Figure 3: Exploded Level-1 DFD for Process 1.0 — Generated via Mermaid.js v10 (SVG vector output). Balanced with parent Process 1.0.
+4. Exploded Level-1 DFD — Process 4.0 (Enforces Business Rule BR-03)
+
+
+flowchart LR
+InStatus[Plan Status Decision] --> P41((4.1 Verify Running Coach Role BR-03))
+InCurve[Curve Calibration] --> P41
+P41 -->|Authorized Status Change| P42((4.2 Update Plan Status))
+D1[(D1: D1_pacing_plans)] -->|Existing Plan Record| P42
+P42 -->|Updated Plan Status| D1
+P41 -->|Authorized Curve Edit| P43((4.3 Update Curve Variance))
+P43 -->|Updated Curve Variance| D2[(D2: D2_strategy_curves)]
+
+Figure 4: Exploded Level-1 DFD for Process 4.0 — Generated via Mermaid.js v10 (SVG vector output). Balanced with parent Process 4.0.
+E. Business Process Model (BPM) — End-to-End Race Strategy Workflow
+
+
+flowchart TD
+Start([Start: Runner Prepares for Race]) --> T1[Manual: Select Target Race & Goal Time]
+T1 --> T2[System-Supported: Validate Pace Floor & Create Plan -> DFD 1.0]
+T2 --> G1{Exclusive Decision: Avg Pace >= 4:30/mi? BR-01}
+G1 -- No: Exception Path --> T_Err[System-Supported: Display BR-01 Error & Block Save -> DFD 1.0]
+T_Err --> T1
+G1 -- Yes: Normal Path --> T3[System-Supported: Calculate Mile-by-Mile Splits -> DFD 2.0]
+T3 --> T4[Manual: Running Coach Reviews Plan in Strategy Hub]
+T4 --> T5[System-Supported: Approve or Flag Plan Status -> DFD 4.0 BR-03]
+T5 --> T6[Manual: Runner Loads Approved Splits onto Garmin Watch & Runs Race]
+T6 --> End([End: Race Strategy Executed])
+
+Figure 5: End-to-End Business Process Model (BPM) — Generated via Mermaid.js v10 (SVG vector output). Includes manual tasks, DFD-mapped system tasks, an exclusive decision, and a closed exception path.
+F. AI Usage & Iteration Log
+
+Step 1 (Problem & Value Model): Defined primary user group (amateur long-distance runners), secondary stakeholder (Running Club Coach), and Garmin hardware-sponsor value model.
+Step 2 (Requirements & Rules Audit): Refined 6 Functional Requirements, 3 measurable Non-Functional Requirements, 3 paper-valid Business Rules (BR-01 to BR-03), and 2 technical constraints.
+Step 3 (Diagram Balancing): Balanced Context, Level-0, two Level-1 DFDs, and BPM diagrams so every data store (D1_pacing_plans, D2_strategy_curves) matches browser localStorage collections and every system task maps to a DFD process.
+Step 4 (Prototype Build & Verification): Built single-file client-side index.html with pre-seeded synthetic records, visible role selector, reset demo data button, and on-tab Mermaid diagram rendering.
+const D1_KEY = 'D1_pacing_plans';
+const D2_KEY = 'D2_strategy_curves';
+let diagramsRendered = false;
+const SEED_D1 = [
+{
+planId: 'PC-101',
+runnerName: 'Maya Lin',
+distance: 13.1,
+distanceLabel: 'Half Marathon (13.1 mi)',
+goalMinutes: 115,
+avgPaceSec: Math.round((115 * 60) / 13.1),
+strategyName: 'Negative Split',
+status: 'Coach Approved'
+},
+{
+planId: 'PC-102',
+runnerName: 'Devon Brooks',
+distance: 26.2,
+distanceLabel: 'Marathon (26.2 mi)',
+goalMinutes: 240,
+avgPaceSec: Math.round((240 * 60) / 26.2),
+strategyName: 'Even Split',
+status: 'Draft'
+},
+{
+planId: 'PC-103',
+runnerName: 'Carlos Rivera',
+distance: 26.2,
+distanceLabel: 'Marathon (26.2 mi)',
+goalMinutes: 215,
+avgPaceSec: Math.round((215 * 60) / 26.2),
+strategyName: 'Positive Split',
+status: 'Flagged (High Risk)'
+}
+];
+const SEED_D2 = [
+{ strategyName: 'Even Split', variancePct: 0, description: 'Steady pace every mile (0% variance)' },
+{ strategyName: 'Negative Split', variancePct: 5, description: 'Start slower, finish faster' },
+{ strategyName: 'Positive Split', variancePct: 5, description: 'Start faster, fade late' }
+];
+function initStorage() {
+if (!localStorage.getItem(D1_KEY)) {
+localStorage.setItem(D1_KEY, JSON.stringify(SEED_D1));
+}
+if (!localStorage.getItem(D2_KEY)) {
+localStorage.setItem(D2_KEY, JSON.stringify(SEED_D2));
+}
+}
+function getD1() {
+return JSON.parse(localStorage.getItem(D1_KEY)) || [];
+}
+function saveD1(plans) {
+localStorage.setItem(D1_KEY, JSON.stringify(plans));
+renderAll();
+}
+function getD2() {
+return JSON.parse(localStorage.getItem(D2_KEY)) || [];
+}
+function saveD2(curves) {
+localStorage.setItem(D2_KEY, JSON.stringify(curves));
+populateStrategyDropdown();
+}
+function resetDemoData() {
+localStorage.setItem(D1_KEY, JSON.stringify(SEED_D1));
+localStorage.setItem(D2_KEY, JSON.stringify(SEED_D2));
+clearAlerts();
+document.getElementById('splitOutputContainer').classList.add('hidden');
+populateStrategyDropdown();
+renderAll();
+showSuccess('Demo data reset to original synthetic records in D1_pacing_plans and D2_strategy_curves.');
+}
+function populateStrategyDropdown() {
+const curves = getD2();
+const select = document.getElementById('strategyType');
+select.innerHTML = '';
+curves.forEach(c => {
+const opt = document.createElement('option');
+opt.value = c.strategyName;
+opt.textContent = ${c.strategyName} (${c.variancePct}% variance — ${c.description});
+select.appendChild(opt);
+});
+}
+function formatSecondsToPace(totalSec) {
+const mins = Math.floor(totalSec / 60);
+const secs = Math.round(totalSec % 60);
+return ${mins}:${secs < 10 ? '0' : ''}${secs};
+}
+function formatSecondsToClock(totalSec) {
+const hrs = Math.floor(totalSec / 3600);
+const mins = Math.floor((totalSec % 3600) / 60);
+const secs = Math.round(totalSec % 60);
+if (hrs > 0) {
+return ${hrs}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs};
+}
+return ${mins}:${secs < 10 ? '0' : ''}${secs};
+}
+function clearAlerts() {
+document.getElementById('errorBanner').style.display = 'none';
+document.getElementById('successBanner').style.display = 'none';
+}
+function showError(msg) {
+clearAlerts();
+const err = document.getElementById('errorBanner');
+err.textContent = msg;
+err.style.display = 'block';
+}
+function showSuccess(msg) {
+clearAlerts();
+const ok = document.getElementById('successBanner');
+ok.textContent = msg;
+ok.style.display = 'block';
+}
+async function showScreen(screenId, tabId) {
+clearAlerts();
+['screen-home', 'screen-generator', 'screen-hub', 'screen-endpage'].forEach(id => {
+document.getElementById(id).classList.add('hidden');
+});
+['tab-home', 'tab-generator', 'tab-hub', 'tab-endpage'].forEach(id => {
+document.getElementById(id).classList.remove('active-tab');
+});
+document.getElementById(screenId).classList.remove('hidden');
+document.getElementById(tabId).classList.add('active-tab');
+// Render Mermaid SVG diagrams once the end page becomes visible so dimensions calculate cleanly
+if (screenId === 'screen-endpage' && !diagramsRendered && window.mermaid) {
+diagramsRendered = true;
+await mermaid.run({ querySelector: '#screen-endpage .mermaid' });
+}
+}
+// NFR-03: Visible Role Selector updates UI permissions immediately
+function handleRoleChange() {
+clearAlerts();
+const role = document.getElementById('roleSelector').value;
+const box = document.getElementById('roleCapabilitiesBox');
+const isCoach = (role === 'Running Coach');
+if (!isCoach) {
+box.innerHTML = <strong>Current Role: Amateur Runner (Primary User)</strong> <ul style="margin: 6px 0 0 0;"> <li><strong>Allowed:</strong> Calculate mile-by-mile splits, create new pacing plans in <code>D1_pacing_plans</code>, search/filter saved plans, and view summary metrics.</li> <li><strong>Restricted (BR-03):</strong> Cannot approve/flag pacing plans or modify strategy curves in <code>D2_strategy_curves</code>.</li> </ul>;
+} else {
+box.innerHTML = <strong>Current Role: Running Coach (Secondary Stakeholder)</strong> <ul style="margin: 6px 0 0 0;"> <li><strong>Allowed:</strong> Audit all runner pacing plans, approve safe strategies (<em>Coach Approved</em>), flag risky pacing plans, and calibrate variance curves in <code>D2_strategy_curves</code>.</li> <li><strong>Allowed:</strong> View aggregate team pace metrics and generate splits.</li> </ul>;
+}
+const curveBtn = document.getElementById('btnUpdateCurve');
+if (curveBtn) {
+curveBtn.classList.toggle('btn-disabled', !isCoach);
+}
+renderPlansTable();
+}
+// DFD Process 1.0: Validate & Create Plan (FR-01, FR-03, BR-01, BR-02)
+function createPacingPlan(e) {
+e.preventDefault();
+clearAlerts();
+const runnerName = document.getElementById('runnerName').value.trim();
+const distSelect = document.getElementById('raceDistance');
+const distance = parseFloat(distSelect.value);
+const distanceLabel = distSelect.options[distSelect.selectedIndex].text;
+const goalMinutes = parseFloat(document.getElementById('goalMinutes').value);
+const strategyName = document.getElementById('strategyType').value;
+if (!runnerName || isNaN(goalMinutes) || goalMinutes <= 0) {
+showError('Validation Error: Please enter a valid runner name and positive goal finish time.');
+return;
+}
+const totalSeconds = goalMinutes * 60;
+const avgPaceSec = totalSeconds / distance;
+// Subprocess 1.2: Enforce Safety Pace Floor (BR-01)
+if (avgPaceSec < 270) {
+showError(Error [FR-03 / BR-01]: Calculated pace (${formatSecondsToPace(avgPaceSec)}/mi) is faster than the 4:30/mi safety limit for amateur runners. Plan rejected.);
+document.getElementById('splitOutputContainer').classList.add('hidden');
+return;
+}
+// Subprocess 1.3: Assign Risk Status (BR-02)
+let initialStatus = 'Draft';
+if (distance === 26.2 && strategyName === 'Positive Split') {
+initialStatus = 'Flagged (High Risk)';
+}
+const newPlan = {
+planId: 'PC-' + Math.floor(104 + Math.random() * 895),
+runnerName,
+distance,
+distanceLabel,
+goalMinutes,
+avgPaceSec: Math.round(avgPaceSec),
+strategyName,
+status: initialStatus
+};
+const plans = getD1();
+plans.unshift(newPlan);
+saveD1(plans);
+// DFD Process 2.0: Calculate Mile Splits (FR-02)
+calculateMileSplits(newPlan);
+if (initialStatus === 'Flagged (High Risk)') {
+showSuccess(Plan ${newPlan.planId} saved to D1_pacing_plans! Note [BR-02]: Marathon Positive Split plans are automatically marked "Flagged (High Risk)" for Coach review.);
+} else {
+showSuccess(Plan ${newPlan.planId} created and saved to D1_pacing_plans with status "Draft".);
+}
+}
+// DFD Process 2.0: Calculate Mile Splits (FR-02)
+function calculateMileSplits(plan) {
+const tbody = document.getElementById('splitTableBody');
+tbody.innerHTML = '';
+const curves = getD2();
+const curveObj = curves.find(c => c.strategyName === plan.strategyName) || { variancePct: 0 };
+const v = curveObj.variancePct / 100;
+const wholeMiles = Math.floor(plan.distance);
+const remainder = +(plan.distance - wholeMiles).toFixed(2);
+const totalSegments = remainder > 0 ? wholeMiles + 1 : wholeMiles;
+let cumulativeSec = 0;
+for (let i = 1; i <= totalSegments; i++) {
+const isLastPartial = (i === totalSegments && remainder > 0);
+const segmentMiles = isLastPartial ? remainder : 1.0;
+const progress = totalSegments > 1 ? (i - 1) / (totalSegments - 1) : 0;
+let multiplier = 1.0;
+if (plan.strategyName === 'Negative Split') {
+multiplier = (1 + v) - (2 * v * progress);
+} else if (plan.strategyName === 'Positive Split') {
+multiplier = (1 - v) + (2 * v * progress);
+}
+const milePaceSec = plan.avgPaceSec * multiplier;
+const segmentTimeSec = milePaceSec * segmentMiles;
+cumulativeSec += segmentTimeSec;
+const row = document.createElement('tr');
+row.innerHTML = `
+{isLastPartial ? `Final {remainder} mi:Mile ${i}`}
+${formatSecondsToPace(milePaceSec)} /mi
+${formatSecondsToClock(cumulativeSec)}
+`;
+tbody.appendChild(row);
+}
+document.getElementById('splitSummaryHeader').textContent =
+${plan.runnerName} — ${plan.distanceLabel} | Goal: ${plan.goalMinutes} min | Avg Pace: ${formatSecondsToPace(plan.avgPaceSec)}/mi (${plan.strategyName}, ±${curveObj.variancePct}%);
+document.getElementById('splitOutputContainer').classList.remove('hidden');
+}
+// DFD Process 4.0: Manage Status & Curves (FR-05 & BR-03)
+function updatePlanStatus(planId, newStatus) {
+const role = document.getElementById('roleSelector').value;
+if (role !== 'Running Coach') {
+showError('Error [BR-03]: Only a user in the "Running Coach" role can approve or flag pacing plans.');
+return;
+}
+const plans = getD1();
+const target = plans.find(p => p.planId === planId);
+if (target) {
+target.status = newStatus;
+saveD1(plans);
+showSuccess(Plan ${planId} status updated to "${newStatus}" in D1_pacing_plans.);
+}
+}
+function updateStrategyCurve() {
+const role = document.getElementById('roleSelector').value;
+if (role !== 'Running Coach') {
+showError('Error [BR-03]: Only a user in the "Running Coach" role can calibrate strategy curves in D2_strategy_curves.');
+return;
+}
+const stratName = document.getElementById('curveSelect').value;
+const newVar = parseInt(document.getElementById('curveVariance').value, 10);
+if (isNaN(newVar) || newVar < 1 || newVar > 15) {
+showError('Please enter a valid variance percentage between 1% and 15%.');
+return;
+}
+const curves = getD2();
+const target = curves.find(c => c.strategyName === stratName);
+if (target) {
+target.variancePct = newVar;
+saveD2(curves);
+showSuccess(Updated "${stratName}" variance to ±${newVar}% in D2_strategy_curves.);
+}
+}
+// DFD Process 3.0: Search & Filter Plans (FR-04)
+function filterStrategies() {
+renderPlansTable();
+}
+function renderPlansTable() {
+const plans = getD1();
+const query = document.getElementById('searchRunner').value.toLowerCase();
+const distFilter = document.getElementById('filterDistance').value;
+const role = document.getElementById('roleSelector').value;
+const isCoach = (role === 'Running Coach');
+const tbody = document.getElementById('plansTableBody');
+tbody.innerHTML = '';
+const filtered = plans.filter(p => {
+const matchesName = p.runnerName.toLowerCase().includes(query);
+const matchesDist = (distFilter === 'ALL' || String(p.distance) === distFilter);
+return matchesName && matchesDist;
+});
+filtered.forEach(plan => {
+const tr = document.createElement('tr');
+tr.innerHTML = `
+${plan.planId}
+${plan.runnerName}
+${plan.distanceLabel}
+${plan.goalMinutes} min
+${formatSecondsToPace(plan.avgPaceSec)} /mi
+${plan.strategyName}
+${plan.status}
+`;
+tbody.appendChild(tr);
+});
+}
+// DFD Process 5.0: Compile Summary Report (FR-06)
+function renderSummaryReport() {
+const plans = getD1();
+const total = plans.length;
+const approved = plans.filter(p => p.status === 'Coach Approved').length;
+const avgSec = total > 0
+? plans.reduce((acc, p) => acc + p.avgPaceSec, 0) / total
+: 0;
+document.getElementById('statTotalPlans').textContent = total;
+document.getElementById('statApprovedPlans').textContent = approved;
+document.getElementById('statAvgPace').textContent = total > 0 ? ${formatSecondsToPace(avgSec)} /mi : '0:00 /mi';
+}
+function renderAll() {
+renderSummaryReport();
+renderPlansTable();
+}
+// Initialize on load
+initStorage();
+populateStrategyDropdown();
+handleRoleChange();
+renderAll();
+
+
+
+<FollowUp>
+Once you save and host this file, let me know if you want a quick **oral defense practice drill** covering how to explain your **DFD balancing, BPM manual vs. system tasks, and Garmin sponsor model**!
+</FollowUp>
