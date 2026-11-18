@@ -33,9 +33,9 @@ flowchart TB
   P5(["5.0 Search And Filter Plans"])
   P6(["6.0 Produce Summary Report"])
 
-  D1[("D1 pacecraft_plans")]
-  D2[("D2 pacecraft_users")]
-  D3[("D3 pacecraft_reviews")]
+  D1["D1 pacecraft_plans"]
+  D2["D2 pacecraft_users"]
+  D3["D3 pacecraft_reviews"]
 
   R -->|access identifier| P1
   P1 -->|user record| D2
@@ -82,8 +82,8 @@ flowchart TB
   P34(["3.4 Write Plan Record And Set Status"])
   P35(["3.5 Format Watch Ready Split File"])
 
-  D1[("D1 pacecraft_plans")]
-  D2[("D2 pacecraft_users")]
+  D1["D1 pacecraft_plans"]
+  D2["D2 pacecraft_users"]
 
   IN -->|draft split schedule| P31
   R -->|race goal details| P31
@@ -114,8 +114,8 @@ flowchart TB
   P43(["4.3 Record Approval Or Flag Decision"])
   P44(["4.4 Write Review Log Entry"])
 
-  D1[("D1 pacecraft_plans")]
-  D3[("D3 pacecraft_reviews")]
+  D1["D1 pacecraft_plans"]
+  D3["D3 pacecraft_reviews"]
 
   D1 -->|stored plan record| P41
   P41 -->|plan review list| C
