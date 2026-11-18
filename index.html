@@ -1153,7 +1153,7 @@ function goToScreen(n){
   document.getElementById('screen'+n).classList.add('visible');
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('active', b.dataset.screen === String(n)));
   window.scrollTo({ top:0, behavior:'smooth' });
-  if(n === 4 && window.__renderDiagrams) window.__renderDiagrams();
+  if(Number(n) ===4 && window.__renderDiagrams) window.__renderDiagrams();
 }
 
 /* ---------- misc helpers ---------- */
